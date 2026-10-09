@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>Degelab Filament V2</title>
+<style>
+:root{--bg:#080d1d;--card:#121a2e;--card2:#18233d;--line:#2b3b60;--txt:#f8fafc;--muted:#9fb0cc;--accent:#5747ee;--accent2:#7769ff;--good:#0f8b65;--bad:#b4232d;--warn:#d97706}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#080d1d,#0b1224);color:var(--txt);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+header{position:sticky;top:0;z-index:5;background:#0b1020eF;backdrop-filter:blur(12px);border-bottom:1px solid #1e2b49;padding:15px 18px}
+.wrap{max-width:1050px;margin:auto}.head{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand h1{font-size:21px;margin:0}.brand small{color:var(--muted)}
+main{max-width:1050px;margin:22px auto;padding:0 16px 50px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 12px 35px #0002}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:720px){.grid,.grid3{grid-template-columns:1fr}.head{align-items:flex-start}.desktopHide{display:none}}
+label{display:block;color:#b8c6df;font-size:13px;margin:9px 0 6px}input,select,textarea{width:100%;background:#0d1528;border:1px solid #344568;border-radius:12px;color:#fff;padding:12px;font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:#7769ff}textarea{min-height:90px;resize:vertical}
+button,.btn{border:0;border-radius:12px;background:var(--accent);color:#fff;padding:11px 14px;font-weight:750;cursor:pointer;font:inherit;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}.secondary{background:#263553}.danger{background:#7f1d1d}.good{background:#086b51}.ghost{background:transparent;border:1px solid #344568}.small{padding:8px 10px;font-size:13px}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.spread{justify-content:space-between}.hidden{display:none!important}
+h2,h3{margin:0 0 12px}.muted{color:var(--muted)}.notice{padding:11px 13px;border-radius:11px;background:#273657;margin-top:10px}.notice.good{background:#064e3b}.notice.bad{background:#7f1d1d}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.stat b{font-size:23px;display:block}.stat span{color:var(--muted);font-size:12px}@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}}
+.profile{display:flex;gap:13px;align-items:center;background:#111a2e;border:1px solid #28395d;padding:13px;border-radius:15px;margin:9px 0;cursor:pointer}.swatch{width:38px;height:38px;border-radius:50%;border:2px solid #ffffff33;flex:0 0 auto}.grow{flex:1;min-width:0}.profile strong{display:block}.profile small{color:var(--muted)}.badge{font-size:11px;padding:4px 8px;border-radius:999px;background:#263553}.low{background:#7f1d1d}.ok{background:#065f46}
+.tabs{display:flex;gap:8px;overflow:auto;margin-bottom:16px}.tabs button{white-space:nowrap;background:#1a2743}.tabs button.active{background:var(--accent)}
+.spool{border:1px solid #314365;border-radius:13px;padding:12px;margin-top:9px;background:#0e172a}.spool h4{margin:0 0 8px}.colorline{display:flex;align-items:center;gap:8px}
+.login{max-width:460px;margin:50px auto}.photo{max-width:170px;max-height:170px;border-radius:14px;border:1px solid var(--line);object-fit:cover;margin-top:8px}.footerNote{color:#7485a3;font-size:12px;text-align:center;margin-top:25px}
+</style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth,setPersistence,browserLocalPersistence,signInWithEmailAndPassword,signOut,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore,collection,doc,setDoc,deleteDoc,onSnapshot,getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+const firebaseConfig={
+ apiKey:"AIzaSyCz7bFyvVlFEp4-4n7thPv3to5umflEay4",
+ authDomain:"degelab-filament.firebaseapp.com",
+ projectId:"degelab-filament",
+ storageBucket:"degelab-filament.firebasestorage.app",
+ messagingSenderId:"770677901373",
+ appId:"1:770677901373:web:5578eebc905ad0d9768254",
+ measurementId:"G-27Q078VGXM"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);await setPersistence(auth,browserLocalPersistence);
+window.FB={auth,db,collection,doc,setDoc,deleteDoc,onSnapshot,getDocs,signInWithEmailAndPassword,signOut,onAuthStateChanged};
+window.dispatchEvent(new Event("fbready"));
+</script>
+</head>
+<body>
+<header><div class="wrap head"><div class="brand"><h1>🧵 Degelab Filament <span class="badge">V2</span></h1><small id="syncState">Firebase • hors connexion</small></div><div class="row"><button id="exportBtn" class="secondary small hidden" onclick="exportData()">💾 Sauvegarde</button><button id="logoutBtn" class="secondary small hidden" onclick="logout()">Déconnexion</button></div></div></header>
+<main>
+<section id="loginView" class="login card">
+<h2>Connexion</h2><p class="muted">Ton compte Degelab synchronise les bobines entre ton PC et ton téléphone.</p>
+<label>Adresse e-mail</label><input id="email" type="email" autocomplete="username">
+<label>Mot de passe</label><input id="password" type="password" autocomplete="current-password">
+<button id="loginBtn" style="width:100%;margin-top:14px" onclick="login()">🔐 Se connecter</button><div id="loginMsg"></div>
+</section>
+
+<section id="appView" class="hidden">
+<div class="tabs">
+<button id="tabHome" class="active" onclick="showHome()">📦 Mes filaments</button>
+<button onclick="newProfile()">＋ Nouveau filament</button>
+<button onclick="showTares()">⚖️ Tares</button>
+</div>
+<div id="stats" class="stats"></div>
+<div id="homeView">
+<div class="card"><div class="row spread"><div><h2>Mes filaments</h2><div class="muted">Un profil par marque + matière + gamme + couleur, avec plusieurs bobines possibles.</div></div><button onclick="newProfile()">＋ Ajouter</button></div><div id="profiles"></div></div>
+</div>
+
+<div id="profileView" class="hidden">
+<div class="card">
+<div class="row spread"><div><h2 id="formTitle">Nouveau filament</h2><div class="muted">Profil commun à toutes les bobines identiques.</div></div><button class="secondary" onclick="showHome()">← Retour</button></div>
+<div class="grid">
+<div><label>Marque</label><input id="brand" list="brands" placeholder="SUNLU"><datalist id="brands"></datalist></div>
+<div><label>Matière</label><select id="material"><option>PLA</option><option>PLA+</option><option>PETG</option><option>ABS</option><option>ASA</option><option>TPU</option><option>PA</option><option>PC</option><option>PVA</option><option>Autre</option></select></div>
+<div><label>Gamme / variante</label><input id="range" placeholder="Basic, Matte, High Speed…"></div>
+<div><label>Nom de couleur</label><input id="colorName" placeholder="Blanc"></div>
+<div><label>Couleur</label><input id="color" type="color" value="#ffffff"></div>
+<div><label>Diamètre filament (mm)</label><input id="diameter" type="number" step=".01" value="1.75"></div>
+<div><label>Température buse (°C)</label><input id="nozzle" placeholder="235"></div>
+<div><label>Plateau (°C)</label><input id="bed" placeholder="70"></div>
+<div><label>Flow Ratio</label><input id="flow" placeholder="0.98"></div>
+<div><label>Flow Dynamics K</label><input id="k" placeholder="0.020"></div>
+<div><label>Débit volumique max (mm³/s)</label><input id="mvs" placeholder="12"></div>
+<div><label>Seuil stock faible (g)</label><input id="lowThreshold" type="number" value="200"></div>
+<div><label>Lien de rachat</label><input id="buyUrl" type="url" placeholder="https://…"></div>
+<div><label>Photo du filament / bobine</label><input id="photo" type="file" accept="image/*" onchange="photoSelected(event)"><img id="photoPreview" class="photo hidden"></div>
+</div>
+<label>Notes</label><textarea id="notes" placeholder="Réglages, comportement, observations…"></textarea>
+<div class="row" style="margin-top:13px"><button onclick="saveProfile()">💾 Enregistrer le profil</button><button id="buyBtn" class="secondary hidden" onclick="openBuy()">🛒 Racheter</button><button id="deleteProfileBtn" class="danger hidden" onclick="deleteProfile()">Supprimer le profil</button></div>
+<div id="profileMsg"></div>
+</div>
+
+<div id="spoolsCard" class="card hidden">
+<div class="row spread"><div><h3>Bobines physiques</h3><div class="muted">Chaque bobine a son poids, son NFC et son historique.</div></div><button onclick="newSpool()">＋ Ajouter une bobine identique</button></div>
+<div id="spools"></div>
+</div>
+</div>
+
+<div id="spoolView" class="hidden">
+<div class="card">
+<div class="row spread"><div><h2 id="spoolTitle">Bobine</h2><div id="spoolProfileName" class="muted"></div></div><button class="secondary" onclick="backToProfile()">← Profil</button></div>
+<div class="grid">
+<div><label>Nom</label><input id="spoolName" placeholder="Bobine 1"></div>
+<div><label>Poids net restant (g)</label><input id="remaining" type="number" min="0" placeholder="1000"></div>
+<div><label>Poids total mesuré (g)</label><input id="gross" type="number" min="0" placeholder="Ex. 820" oninput="calcRemaining()"></div>
+<div><label>Poids bobine vide / tare (g)</label><input id="tare" type="number" min="0" placeholder="Ex. 190" oninput="calcRemaining()"></div>
+<div><label>Dernier séchage</label><input id="dryDate" type="date"></div>
+<div><label>Durée séchage (h)</label><input id="dryHours" type="number" step=".5"></div>
+<div><label>Température séchage (°C)</label><input id="dryTemp" type="number"></div>
+</div>
+<label>Notes de cette bobine</label><textarea id="spoolNotes"></textarea>
+<div class="row" style="margin-top:13px"><button onclick="saveSpool()">💾 Enregistrer</button><button id="nfcBtn" class="good" onclick="writeNFC()">📡 Écrire NFC</button><button id="deleteSpoolBtn" class="danger hidden" onclick="deleteSpool()">Supprimer</button></div>
+<div id="spoolMsg"></div>
+</div>
+</div>
+
+<div id="taresView" class="hidden">
+<div class="card"><div class="row spread"><div><h2>Tares de bobines</h2><div class="muted">Enregistre le poids d'une bobine vide. Tu peux ensuite le recopier dans une bobine.</div></div><button class="secondary" onclick="showHome()">← Retour</button></div>
+<div class="grid"><div><label>Marque / type de bobine</label><input id="tareName" placeholder="SUNLU plastique"></div><div><label>Poids vide (g)</label><input id="tareWeight" type="number"></div></div><button style="margin-top:12px" onclick="saveTare()">＋ Enregistrer la tare</button><div id="taresList"></div></div>
+</div>
+</section>
+<div class="footerNote">Degelab Filament V2 • synchronisation Firebase</div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const BRANDS=["Bambu Lab","SUNLU","Overture","eSUN","Polymaker","Elegoo","Prusament","Hatchbox","Creality","Geeetech","JAYO","ERYONE","Anycubic","Amazon Basics","FormFutura","Fiberlogy","ColorFabb","Spectrum","Fillamentum","3DJake"];
+let user=null,profiles=[],spools=[],tares=[],currentProfile=null,currentSpool=null,photoData="",unsubs=[];
+
+function note(id,msg,type="good"){$(id).innerHTML=`<div class="notice ${type}">${msg}</div>`}
+function path(col){return FB.collection(FB.db,"users",user.uid,col)}
+function docref(col,id){return FB.doc(FB.db,"users",user.uid,col,id)}
+function uid(prefix){return prefix+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function hideViews(){["homeView","profileView","spoolView","taresView"].forEach(x=>$(x).classList.add("hidden"))}
+function showHome(){hideViews();$("homeView").classList.remove("hidden");renderAll()}
+function profileName(p){return [p.brand,p.material,p.range,p.colorName].filter(Boolean).join(" • ")}
+function matchingSpools(pid){return spools.filter(s=>s.profileId===pid)}
+function remainingFor(pid){return matchingSpools(pid).reduce((a,s)=>a+(+s.remaining||0),0)}
+function renderAll(){renderStats();renderProfiles()}
+function renderStats(){
+ const grams=spools.reduce((a,s)=>a+(+s.remaining||0),0), low=spools.filter(s=>{let p=profiles.find(x=>x.id===s.profileId);return (+s.remaining||0)<(+(p?.lowThreshold)||200)}).length;
+ $("stats").innerHTML=`<div class="stat"><b>${profiles.length}</b><span>profils</span></div><div class="stat"><b>${spools.length}</b><span>bobines</span></div><div class="stat"><b>${(grams/1000).toFixed(2)} kg</b><span>filament restant</span></div><div class="stat"><b>${low}</b><span>stock faible</span></div>`;
+}
+function renderProfiles(){
+ let h="";
+ for(const p of profiles){
+  const ss=matchingSpools(p.id), grams=remainingFor(p.id), threshold=+(p.lowThreshold||200), low=ss.some(s=>(+s.remaining||0)<threshold);
+  h+=`<div class="profile" onclick="editProfile('${p.id}')"><div class="swatch" style="background:${esc(p.color||'#fff')}"></div><div class="grow"><strong>${esc(profileName(p))}</strong><small>${ss.length} bobine${ss.length>1?'s':''} • ${grams} g restant</small></div>${low?'<span class="badge low">Stock faible</span>':'<span class="badge ok">OK</span>'}</div>`;
+ }
+ $("profiles").innerHTML=h||'<div class="notice">Aucun filament. Clique sur « Nouveau filament ».</div>';
+}
+function fillBrands(){
+ const learned=[...new Set(profiles.map(p=>p.brand).filter(Boolean))];$("brands").innerHTML=[...new Set([...BRANDS,...learned])].sort().map(x=>`<option value="${esc(x)}">`).join("");
+}
+function newProfile(){currentProfile=null;photoData="";hideViews();$("profileView").classList.remove("hidden");$("formTitle").textContent="Nouveau filament";["brand","range","colorName","nozzle","bed","flow","k","mvs","buyUrl","notes"].forEach(x=>$(x).value="");$("material").value="PLA";$("color").value="#ffffff";$("diameter").value="1.75";$("lowThreshold").value="200";$("photoPreview").classList.add("hidden");$("deleteProfileBtn").classList.add("hidden");$("buyBtn").classList.add("hidden");$("spoolsCard").classList.add("hidden");$("profileMsg").innerHTML="";fillBrands()}
+function editProfile(id){
+ const p=profiles.find(x=>x.id===id);if(!p)return;currentProfile=id;hideViews();$("profileView").classList.remove("hidden");$("formTitle").textContent=profileName(p);
+ ["brand","material","range","colorName","color","diameter","nozzle","bed","flow","k","mvs","lowThreshold","buyUrl","notes"].forEach(x=>$(x).value=p[x]??(x==="lowThreshold"?200:""));
+ photoData=p.photoData||"";if(photoData){$("photoPreview").src=photoData;$("photoPreview").classList.remove("hidden")}else $("photoPreview").classList.add("hidden");
+ $("deleteProfileBtn").classList.remove("hidden");$("spoolsCard").classList.remove("hidden");$("buyBtn").classList.toggle("hidden",!p.buyUrl);$("profileMsg").innerHTML="";fillBrands();renderSpools()
+}
+function photoSelected(e){const f=e.target.files?.[0];if(!f)return;if(f.size>700000){alert("Photo trop lourde. Choisis une image de moins de 700 Ko.");e.target.value="";return}const r=new FileReader();r.onload=()=>{photoData=r.result;$("photoPreview").src=photoData;$("photoPreview").classList.remove("hidden")};r.readAsDataURL(f)}
+async function saveProfile(){
+ if(!user)return;let id=currentProfile||uid("P");let p={id,photoData,updatedAt:Date.now()};
+ for(const x of ["brand","material","range","colorName","color","diameter","nozzle","bed","flow","k","mvs","lowThreshold","buyUrl","notes"])p[x]=$(x).value;
+ if(!p.brand||!p.material||!p.colorName){note("profileMsg","Marque, matière et couleur sont nécessaires.","bad");return}
+ // Detect identical existing profile when creating.
+ if(!currentProfile){const same=profiles.find(x=>["brand","material","range","colorName"].every(k=>(x[k]||"").trim().toLowerCase()===(p[k]||"").trim().toLowerCase()));if(same){currentProfile=same.id;note("profileMsg","Ce filament existe déjà : le profil existant a été ouvert. Ajoute simplement une bobine identique.");editProfile(same.id);return}}
+ try{await FB.setDoc(docref("profiles",id),p);currentProfile=id;note("profileMsg","✅ Profil synchronisé.");setTimeout(()=>editProfile(id),350)}catch(e){note("profileMsg","❌ "+esc(e.message),"bad")}
+}
+async function deleteProfile(){if(!currentProfile||!confirm("Supprimer ce profil ET ses bobines ?"))return;for(const s of matchingSpools(currentProfile))await FB.deleteDoc(docref("spools",s.id));await FB.deleteDoc(docref("profiles",currentProfile));showHome()}
+function openBuy(){let p=profiles.find(x=>x.id===currentProfile);if(p?.buyUrl)window.open(p.buyUrl,"_blank","noopener")}
+function renderSpools(){
+ const p=profiles.find(x=>x.id===currentProfile), threshold=+(p?.lowThreshold||200);
+ $("spools").innerHTML=matchingSpools(currentProfile).map(s=>`<div class="spool"><div class="row spread"><div><h4>${esc(s.name||"Bobine")}</h4><div class="muted">${+s.remaining||0} g restant ${s.dryDate?"• séchée le "+esc(s.dryDate):""}</div></div><div class="row">${(+s.remaining||0)<threshold?'<span class="badge low">Stock faible</span>':''}<button class="small secondary" onclick="editSpool('${s.id}')">Ouvrir</button></div></div></div>`).join("")||'<div class="notice">Aucune bobine physique pour ce profil.</div>'
+}
+function newSpool(){currentSpool=null;hideViews();$("spoolView").classList.remove("hidden");let p=profiles.find(x=>x.id===currentProfile);$("spoolProfileName").textContent=profileName(p);$("spoolTitle").textContent="Nouvelle bobine";$("spoolName").value="Bobine "+(matchingSpools(currentProfile).length+1);["remaining","gross","tare","dryDate","dryHours","dryTemp","spoolNotes"].forEach(x=>$(x).value="");$("deleteSpoolBtn").classList.add("hidden");$("spoolMsg").innerHTML=""}
+function editSpool(id){let s=spools.find(x=>x.id===id);if(!s)return;currentSpool=id;currentProfile=s.profileId;hideViews();$("spoolView").classList.remove("hidden");let p=profiles.find(x=>x.id===currentProfile);$("spoolProfileName").textContent=profileName(p);$("spoolTitle").textContent=s.name||"Bobine";["spoolName","remaining","gross","tare","dryDate","dryHours","dryTemp","spoolNotes"].forEach(x=>$(x).value=s[x]??"");$("deleteSpoolBtn").classList.remove("hidden");$("spoolMsg").innerHTML=""}
+function backToProfile(){editProfile(currentProfile)}
+function calcRemaining(){let g=+$("gross").value,t=+$("tare").value;if(g&&t)$("remaining").value=Math.max(0,g-t)}
+async function saveSpool(){if(!currentProfile)return;let id=currentSpool||uid("S"),s={id,profileId:currentProfile,updatedAt:Date.now()};["spoolName","remaining","gross","tare","dryDate","dryHours","dryTemp","spoolNotes"].forEach(x=>s[x== "spoolName"?"name":x]=$(x).value);try{await FB.setDoc(docref("spools",id),s);currentSpool=id;note("spoolMsg","✅ Bobine synchronisée sur PC et téléphone.");$("deleteSpoolBtn").classList.remove("hidden")}catch(e){note("spoolMsg","❌ "+esc(e.message),"bad")}}
+async function deleteSpool(){if(!currentSpool||!confirm("Supprimer cette bobine ?"))return;await FB.deleteDoc(docref("spools",currentSpool));backToProfile()}
+let nfcWriting=false;
+async function writeNFC(){
+ if(!currentSpool){note("spoolMsg","Enregistre d'abord la bobine.","bad");return}
+ if(!("NDEFReader" in window)){note("spoolMsg","Web NFC n'est pas disponible sur ce navigateur. Utilise Chrome Android.","bad");return}
+ if(nfcWriting)return;nfcWriting=true;$("nfcBtn").disabled=true;
+ const url=location.origin+location.pathname+"?spool="+encodeURIComponent(currentSpool);
+ try{const ndef=new NDEFReader();await ndef.write({records:[{recordType:"url",data:url}]});note("spoolMsg","✅ NFC écrit. En scannant la puce, cette bobine s'ouvrira.")}
+ catch(e){note("spoolMsg","❌ NFC : "+esc(e.message||e),"bad")}
+ finally{nfcWriting=false;$("nfcBtn").disabled=false}
+}
+function openFromUrl(){let id=new URLSearchParams(location.search).get("spool");if(id){let s=spools.find(x=>x.id===id);if(s)editSpool(id)}}
+function showTares(){hideViews();$("taresView").classList.remove("hidden");renderTares()}
+async function saveTare(){let name=$("tareName").value.trim(),weight=+$("tareWeight").value;if(!name||!weight)return;let id=uid("T");await FB.setDoc(docref("tares",id),{id,name,weight,updatedAt:Date.now()});$("tareName").value="";$("tareWeight").value=""}
+function renderTares(){$("taresList").innerHTML=tares.map(t=>`<div class="spool row spread"><span><b>${esc(t.name)}</b> • ${t.weight} g</span><button class="danger small" onclick="deleteTare('${t.id}')">Supprimer</button></div>`).join("")}
+async function deleteTare(id){await FB.deleteDoc(docref("tares",id))}
+async function exportData(){let data={exportedAt:new Date().toISOString(),profiles,spools,tares};let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="degelab-filament-sauvegarde.json";a.click();URL.revokeObjectURL(a.href)}
+async function login(){let b=$("loginBtn");b.disabled=true;b.textContent="Connexion…";try{await FB.signInWithEmailAndPassword(FB.auth,$("email").value.trim(),$("password").value)}catch(e){note("loginMsg","Connexion impossible : "+esc(e.code||e.message),"bad")}finally{b.disabled=false;b.textContent="🔐 Se connecter"}}
+async function logout(){await FB.signOut(FB.auth)}
+function subscribe(){
+ unsubs.forEach(f=>f());unsubs=[];
+ unsubs.push(FB.onSnapshot(path("profiles"),s=>{profiles=s.docs.map(d=>d.data()).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));fillBrands();renderAll()}));
+ unsubs.push(FB.onSnapshot(path("spools"),s=>{spools=s.docs.map(d=>d.data());renderAll();if(currentProfile&&!$("profileView").classList.contains("hidden"))renderSpools();openFromUrl()}));
+ unsubs.push(FB.onSnapshot(path("tares"),s=>{tares=s.docs.map(d=>d.data());if(!$("taresView").classList.contains("hidden"))renderTares()}));
+}
+function init(){
+ fillBrands();
+ FB.onAuthStateChanged(FB.auth,u=>{
+  user=u||null;
+  if(u){$("loginView").classList.add("hidden");$("appView").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");$("exportBtn").classList.remove("hidden");$("syncState").textContent="Firebase • connecté • "+u.email;subscribe();showHome()}
+  else{unsubs.forEach(f=>f());unsubs=[];$("loginView").classList.remove("hidden");$("appView").classList.add("hidden");$("logoutBtn").classList.add("hidden");$("exportBtn").classList.add("hidden");$("syncState").textContent="Firebase • hors connexion"}
+ });
+}
+if(window.FB)init();else window.addEventListener("fbready",init,{once:true});
+</script>
+</body></html>
