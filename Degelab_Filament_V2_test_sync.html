@@ -1,0 +1,136 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111827"><title>Degelab Filament</title><style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#eef2ff}header{position:sticky;top:0;background:#111827eF;backdrop-filter:blur(10px);padding:16px 18px;border-bottom:1px solid #27324a}h1{font-size:21px;margin:0}.sub{font-size:12px;color:#9ca3af;margin-top:3px}main{max-width:780px;margin:auto;padding:16px}.card{background:#141b2d;border:1px solid #26324b;border-radius:18px;padding:16px;margin-bottom:14px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.row{grid-template-columns:1fr}}label{display:block;font-size:12px;color:#aab4c8;margin:10px 0 5px}input,select,textarea,button{width:100%;border-radius:12px;border:1px solid #34415e;background:#0e1526;color:#fff;padding:12px;font-size:15px}textarea{min-height:70px}button{border:0;background:#4f46e5;font-weight:700;cursor:pointer;margin-top:10px}.secondary{background:#25314a}.danger{background:#7f1d1d}.nfc{background:#047857}.nfc:disabled{opacity:.65;cursor:wait}.toolbar{display:flex;gap:8px}.toolbar button{margin:0}.item{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #26324b}.item:last-child{border:0}.dot{width:18px;height:18px;border-radius:50%;border:1px solid #64748b}.muted{color:#9ca3af;font-size:13px}.badge{font-size:12px;background:#27324a;padding:5px 8px;border-radius:999px}.hidden{display:none}.notice{font-size:13px;padding:10px;border-radius:10px;background:#1f2937;margin-top:10px}.titleline{display:flex;justify-content:space-between;gap:10px;align-items:center}.titleline h2{margin:0;font-size:18px}
+.authbox{max-width:440px;margin:40px auto}.authstatus{font-size:12px;color:#9ca3af;margin-top:8px}.success{background:#064e3b}.error{background:#7f1d1d}.logout{width:auto;margin:0;background:#374151;padding:8px 12px}.headrow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+</style>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCz7bFyvVIFEp4-4n7thPv3to5umflEay4",
+  authDomain: "degelab-filament.firebaseapp.com",
+  projectId: "degelab-filament",
+  storageBucket: "degelab-filament.firebasestorage.app",
+  messagingSenderId: "770677901373",
+  appId: "1:770677901373:web:5578eebc905ad0d9768254",
+  measurementId: "G-27Q078VGXM"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+await setPersistence(auth, browserLocalPersistence);
+
+window._fb = { auth, db, collection, doc, setDoc, deleteDoc, onSnapshot, signInWithEmailAndPassword, signOut, onAuthStateChanged };
+window.dispatchEvent(new Event("firebase-ready"));
+</script></head><body><header><div class="headrow"><div><h1>🧵 Degelab Filament V2</h1><div class="sub">Test synchronisation Firebase PC ↔ téléphone</div></div><button id="logoutBtn" class="logout hidden" onclick="logoutUser()">Déconnexion</button></div></header><main>
+<section id="authView"><div class="card authbox"><h2>Connexion</h2><div class="muted">Connecte-toi avec le compte créé dans Firebase.</div><label>Adresse e-mail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="Ton adresse e-mail"><label>Mot de passe</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Ton mot de passe"><button id="loginBtn" onclick="loginUser()">🔐 Se connecter</button><div id="authMsg"></div></div></section>
+<div id="appView" class="hidden">
+<section id="listView"><div class="card"><div class="titleline"><h2>Mes filaments</h2><span id="count" class="badge">0</span></div><button onclick="newFilament()">＋ Nouveau filament</button></div><div id="list" class="card"></div></section>
+<section id="editView" class="hidden"><div class="card"><div class="titleline"><h2 id="formTitle">Nouveau filament</h2><button class="secondary" style="width:auto;margin:0" onclick="showList()">← Retour</button></div><input id="id" type="hidden"><div class="row"><div><label>Marque</label><input id="brand" placeholder="SUNLU, Overture…"></div><div><label>Matière</label><select id="material"><option>PLA</option><option>PETG</option><option>ABS</option><option>ASA</option><option>TPU</option><option>PA</option><option>PC</option><option>Autre</option></select></div></div><div class="row"><div><label>Gamme / référence</label><input id="range" placeholder="PETG Basic…"></div><div><label>Couleur</label><input id="colorName" placeholder="Rouge"></div></div><div class="row"><div><label>Couleur visuelle</label><input id="color" type="color" value="#ff0000"></div><div><label>Diamètre (mm)</label><input id="diameter" type="number" step="0.01" value="1.75"></div></div><div class="row"><div><label>Température buse (°C)</label><input id="nozzle" type="number" placeholder="235"></div><div><label>Température plateau (°C)</label><input id="bed" type="number" placeholder="70"></div></div><div class="row"><div><label>Flow Ratio</label><input id="flow" type="number" step="0.001" placeholder="0.98"></div><div><label>Flow Dynamics K</label><input id="k" type="number" step="0.001" placeholder="0.025"></div></div><div><label>Débit volumétrique max (mm³/s)</label><input id="mvs" type="number" step="0.1" placeholder="12"></div><label>Notes</label><textarea id="notes" placeholder="Résultats de calibration, remarques…"></textarea><button onclick="save()">💾 Enregistrer</button><button id="nfcBtn" class="nfc hidden" onclick="writeNFC()">📡 Écrire sur la puce NFC</button><button id="deleteBtn" class="danger hidden" onclick="removeCurrent()">Supprimer</button><div id="msg"></div></div></section></div>
+</main><script>
+const $=id=>document.getElementById(id);let current=null;let cache=[];let currentUser=null;let unsubscribe=null;
+function all(){return cache}
+function fb(){return window._fb}
+function userFilaments(){return fb().collection(fb().db,'users',currentUser.uid,'filaments')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function showList(){ $('editView').classList.add('hidden');$('listView').classList.remove('hidden');render() }
+function render(){let a=all();$('count').textContent=a.length;$('list').innerHTML=a.length?a.map(f=>`<div class="item" onclick="edit('${f.id}')"><span class="dot" style="background:${f.color||'#777'}"></span><div><b>${esc(f.brand)} ${esc(f.material)}</b><div class="muted">${esc(f.range)}${f.colorName?' • '+esc(f.colorName):''}</div></div><span class="badge">${f.nozzle?f.nozzle+'°C':'ouvrir'}</span></div>`).join(''):'<div class="muted">Aucun filament enregistré.</div>'}
+function clearForm(){['brand','range','colorName','nozzle','bed','flow','k','mvs','notes'].forEach(x=>$(x).value='');$('material').value='PLA';$('diameter').value='1.75';$('color').value='#ff0000'}
+function newFilament(){current=null;clearForm();$('formTitle').textContent='Nouveau filament';$('nfcBtn').classList.add('hidden');$('deleteBtn').classList.add('hidden');openForm()}
+function openForm(){$('listView').classList.add('hidden');$('editView').classList.remove('hidden');$('msg').innerHTML=''}
+function edit(id){let f=all().find(x=>x.id===id);if(!f)return;current=id;for(let x of ['brand','material','range','colorName','color','diameter','nozzle','bed','flow','k','mvs','notes'])$(x).value=f[x]??'';$('formTitle').textContent='Fiche filament';$('nfcBtn').classList.remove('hidden');$('deleteBtn').classList.remove('hidden');openForm()}
+async function save(){
+  if(!currentUser)return;
+  let id=current||('F'+Date.now().toString(36));let f={id};
+  for(let x of ['brand','material','range','colorName','color','diameter','nozzle','bed','flow','k','mvs','notes'])f[x]=$(x).value;
+  f.updatedAt=Date.now();
+  try{
+    await fb().setDoc(fb().doc(fb().db,'users',currentUser.uid,'filaments',id),f);
+    current=id;$('formTitle').textContent='Fiche filament';$('nfcBtn').classList.remove('hidden');$('deleteBtn').classList.remove('hidden');
+    note('✅ Enregistré dans Firebase. Le PC et le téléphone vont se synchroniser.');
+  }catch(e){note('❌ Erreur de sauvegarde : '+esc(e.message||e))}
+}
+async function removeCurrent(){
+  if(!current||!currentUser||!confirm('Supprimer ce filament ?'))return;
+  try{await fb().deleteDoc(fb().doc(fb().db,'users',currentUser.uid,'filaments',current));current=null;showList()}
+  catch(e){note('❌ Erreur de suppression : '+esc(e.message||e))}
+}
+function note(t){$('msg').innerHTML=`<div class="notice">${t}</div>`}
+let nfcWriting=false;
+async function writeNFC(){
+  if(!current||nfcWriting)return;
+  const btn=$('nfcBtn');
+  const url=location.origin+location.pathname+'?filament='+encodeURIComponent(current);
+
+  if(!('NDEFReader' in window)){
+    note('❌ Web NFC n’est pas disponible dans ce navigateur. Utilise Chrome sur Android.');
+    return;
+  }
+
+  nfcWriting=true;
+  btn.disabled=true;
+  const oldText=btn.textContent;
+  btn.textContent='📡 Approche la puce NFC…';
+
+  try{
+    const ndef=new NDEFReader();
+    note('📡 Approche la puce NFC et garde-la contre le téléphone jusqu’à la confirmation…');
+    await ndef.write({
+      records:[{
+        recordType:'url',
+        data:url
+      }]
+    });
+    note('✅ Puce NFC écrite ! Elle ouvrira cette fiche.');
+  }catch(e){
+    const msg=String(e && e.message ? e.message : e);
+    if(/not supported/i.test(msg)){
+      try{await navigator.clipboard.writeText(url)}catch(_){}
+      note('❌ Cette puce n’est pas accessible en écriture par Web NFC. Le lien de la bobine a été copié pour pouvoir l’écrire avec une application NFC compatible. Ce blocage vient du type/format de la puce, pas des données Degelab.');
+    }else if(/new push request|cancelled/i.test(msg)){
+      note('❌ Écriture interrompue. Appuie une seule fois puis garde la puce contre le téléphone.');
+    }else{
+      note('❌ Écriture annulée ou impossible : '+esc(msg));
+    }
+  }finally{
+    nfcWriting=false;
+    btn.disabled=false;
+    btn.textContent=oldText;
+  }
+}
+function loadFromUrl(){let id=new URLSearchParams(location.search).get('filament');if(id&&all().some(x=>x.id===id))edit(id);else render()}
+function authNote(t,ok=false){$('authMsg').innerHTML=`<div class="notice ${ok?'success':'error'}">${t}</div>`}
+async function loginUser(){
+  const email=$('loginEmail').value.trim(), password=$('loginPassword').value;
+  if(!email||!password){authNote('Entre ton e-mail et ton mot de passe.');return}
+  $('loginBtn').disabled=true;$('loginBtn').textContent='Connexion…';
+  try{await fb().signInWithEmailAndPassword(fb().auth,email,password)}
+  catch(e){authNote('Connexion impossible : vérifie ton e-mail et ton mot de passe.')}
+  finally{$('loginBtn').disabled=false;$('loginBtn').textContent='🔐 Se connecter'}
+}
+async function logoutUser(){await fb().signOut(fb().auth)}
+function startSync(user){
+  if(unsubscribe)unsubscribe();
+  unsubscribe=fb().onSnapshot(userFilaments(),snap=>{
+    cache=snap.docs.map(d=>d.data()).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    if(!$('listView').classList.contains('hidden'))render();
+    let id=new URLSearchParams(location.search).get('filament');
+    if(id&&cache.some(x=>x.id===id)&&!current)edit(id);
+  },e=>{alert('Erreur Firestore : '+(e.message||e))});
+}
+function setupFirebase(){
+  fb().onAuthStateChanged(fb().auth,user=>{
+    currentUser=user||null;
+    if(user){
+      $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
+      cache=[];current=null;startSync(user);loadFromUrl();
+    }else{
+      if(unsubscribe){unsubscribe();unsubscribe=null}
+      cache=[];current=null;$('appView').classList.add('hidden');$('authView').classList.remove('hidden');$('logoutBtn').classList.add('hidden');
+    }
+  });
+}
+if(window._fb)setupFirebase();else window.addEventListener('firebase-ready',setupFirebase,{once:true});
+</script></body></html>
